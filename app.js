@@ -1,25 +1,37 @@
 /**
  * ====================================================
- * CHANGING SENTENCES EXAM ENGINE - CLASS 2
- * Full Interactive Logic, Timer, LocalStorage Database
+ * CHANGING SENTENCES EXAM ENGINE - MULTI-USER PORTAL
+ * Supports Mugdho (Class 4), Topu (SSC), Tonmoy (BCS),
+ * Maliha (BCS), & Custom Family Accounts
  * ====================================================
  */
 
-// LocalStorage Keys
-const STORAGE_KEY_DB = 'CHANGING_SENTENCES_EXAM_DB';
+// Storage Keys
+const STORAGE_KEY_USERS = 'EXAM_USERS_REGISTRY';
+const STORAGE_KEY_ACTIVE_USER = 'ACTIVE_USER_ID';
 const STORAGE_KEY_SETTINGS = 'CHANGING_SENTENCES_SETTINGS';
+const STORAGE_LEGACY_DB = 'CHANGING_SENTENCES_EXAM_DB';
 
-// State Management
+// Predefined Family Users
+const DEFAULT_USERS = [
+  { id: 'mugdho', name: 'Mugdho', role: 'Class Four', level: 'class4', avatar: '👦' },
+  { id: 'topu',   name: 'Topu',   role: 'SSC Exam',   level: 'ssc',    avatar: '🧑‍🎓' },
+  { id: 'tonmoy', name: 'Tonmoy', role: 'BCS Exam',   level: 'bcs',    avatar: '👨‍💼' },
+  { id: 'maliha', name: 'Maliha', role: 'BCS Exam',   level: 'bcs',    avatar: '👩‍💼' }
+];
+
+// App State
 const state = {
-  studentName: '',
-  examMode: 'mixed', // 'mixed' | 'assertive_to_interrogative' | 'interrogative_to_assertive'
+  activeUser: null,
+  targetLevel: 'all', // 'class4' | 'ssc' | 'bcs' | 'all'
+  examMode: 'mixed',   // 'mixed' | 'assertive_to_interrogative' | 'interrogative_to_assertive'
   questionCount: 20,
   timerMode: 'standard', // 'standard' | 'speed' | 'notimer'
   soundEnabled: true,
   
-  // Active Exam
+  // Active Exam Run
   activeQuestions: [],
-  userAnswers: {}, // { [qIndex]: selectedOptionIndex }
+  userAnswers: {},
   currentQuestionIndex: 0,
   timerInterval: null,
   totalSecondsAllotted: 0,
@@ -32,7 +44,7 @@ const state = {
   lastResultData: null
 };
 
-// Web Audio API Sound Synthesizer (Zero external dependencies)
+// Web Audio API Sound Synthesizer
 let audioCtx = null;
 function getAudioContext() {
   if (!audioCtx) {
@@ -74,7 +86,6 @@ function playSound(name) {
   } else if (name === 'select') {
     playTone(659.25, 'triangle', 0.12);
   } else if (name === 'complete') {
-    // Cheerful arpeggio: C5 -> E5 -> G5 -> C6
     playTone(523.25, 'triangle', 0.2, 0.0);
     playTone(659.25, 'triangle', 0.2, 0.12);
     playTone(783.99, 'triangle', 0.2, 0.24);
@@ -129,7 +140,7 @@ class ConfettiCannon {
       for (let p of this.particles) {
         p.x += p.vx;
         p.y += p.vy;
-        p.vy += 0.35; // gravity
+        p.vy += 0.35;
         p.rotation += p.rotationSpeed;
         p.alpha = Math.max(0, 1 - elapsed / duration);
 
@@ -165,14 +176,23 @@ const DOM = {
   screenResult: document.getElementById('screen-result'),
   screenDashboard: document.getElementById('screen-dashboard'),
 
-  // Header
+  // Header & User Badge
   brandHomeBtn: document.getElementById('brand-home-btn'),
+  headerUserBtn: document.getElementById('header-user-btn'),
+  headerUserAvatar: document.getElementById('header-user-avatar'),
+  headerUserName: document.getElementById('header-user-name'),
+  headerUserRole: document.getElementById('header-user-role'),
   soundToggleBtn: document.getElementById('sound-toggle-btn'),
   soundIcon: document.getElementById('sound-icon'),
   navDashboardBtn: document.getElementById('nav-dashboard-btn'),
 
   // Setup Form
-  studentNameInput: document.getElementById('student-name'),
+  stripUserAvatar: document.getElementById('strip-user-avatar'),
+  stripUserName: document.getElementById('strip-user-name'),
+  stripUserRole: document.getElementById('strip-user-role'),
+  stripUserId: document.getElementById('strip-user-id'),
+  btnSwitchUserStrip: document.getElementById('btn-switch-user-strip'),
+  levelCards: document.querySelectorAll('.level-card'),
   modeRadios: document.querySelectorAll('input[name="exam-mode"]'),
   modeOptions: document.querySelectorAll('.mode-option'),
   countButtons: document.querySelectorAll('.count-btn'),
@@ -180,11 +200,14 @@ const DOM = {
   standardTimePreview: document.getElementById('standard-time-preview'),
   speedTimePreview: document.getElementById('speed-time-preview'),
   startExamBtn: document.getElementById('start-exam-btn'),
+  homeUserHistoryTitle: document.getElementById('home-user-history-title'),
   homeHistorySummary: document.getElementById('home-history-summary'),
   shortcutOpenDb: document.getElementById('shortcut-open-db'),
 
   // Active Exam
+  examDisplayAvatar: document.getElementById('exam-display-avatar'),
   examDisplayName: document.getElementById('exam-display-name'),
+  examDisplayRole: document.getElementById('exam-display-role'),
   currentQIndex: document.getElementById('current-q-index'),
   totalQCount: document.getElementById('total-q-count'),
   timerBadge: document.getElementById('timer-badge'),
@@ -193,6 +216,7 @@ const DOM = {
   qCategoryLabel: document.getElementById('q-category-label'),
   qCategoryIcon: document.getElementById('q-category-icon'),
   qCategoryText: document.getElementById('q-category-text'),
+  qLevelBadge: document.getElementById('q-level-badge'),
   qInstructionText: document.getElementById('q-instruction-text'),
   qSentenceText: document.getElementById('q-sentence-text'),
   optionsGrid: document.getElementById('options-grid'),
@@ -227,16 +251,36 @@ const DOM = {
   reviewCardsContainer: document.getElementById('review-cards-container'),
 
   // Dashboard
+  dbActiveAvatar: document.getElementById('db-active-avatar'),
+  dbActiveUsername: document.getElementById('db-active-username'),
+  dbActiveRoleTag: document.getElementById('db-active-role-tag'),
+  btnDbSwitchUser: document.getElementById('btn-db-switch-user'),
   btnDbBackHome: document.getElementById('btn-db-back-home'),
+  dashboardTabs: document.querySelectorAll('.d-tab-btn'),
+  tabMyHistory: document.getElementById('tab-content-my-history'),
+  tabLeaderboard: document.getElementById('tab-content-family-leaderboard'),
   dbTotalTests: document.getElementById('db-total-tests'),
   dbBestScore: document.getElementById('db-best-score'),
   dbAvgAccuracy: document.getElementById('db-avg-accuracy'),
   btnClearDb: document.getElementById('btn-clear-db'),
   historyTableBody: document.getElementById('history-table-body'),
+  leaderboardTableBody: document.getElementById('leaderboard-table-body'),
   dbEmptyState: document.getElementById('db-empty-state'),
   btnDbEmptyStart: document.getElementById('btn-db-empty-start'),
 
-  // Modal
+  // User Switcher Modal
+  userModal: document.getElementById('user-modal'),
+  userModalClose: document.getElementById('user-modal-close'),
+  modalUserCardsGrid: document.getElementById('modal-user-cards-grid'),
+  directLoginForm: document.getElementById('direct-login-form'),
+  directUserIdInput: document.getElementById('direct-user-id-input'),
+  btnToggleCreateUser: document.getElementById('btn-toggle-create-user'),
+  createUserForm: document.getElementById('create-user-form'),
+  newUserName: document.getElementById('new-user-name'),
+  newUserId: document.getElementById('new-user-id'),
+  newUserRole: document.getElementById('new-user-role'),
+
+  // Confirmation Modal
   confirmModal: document.getElementById('confirm-modal'),
   modalTitle: document.getElementById('modal-title'),
   modalMessage: document.getElementById('modal-message'),
@@ -249,10 +293,145 @@ const DOM = {
 // ====================================================
 function init() {
   confetti = new ConfettiCannon('confetti-canvas');
+  initUsersRegistry();
+  resolveActiveUserFromURLOrStorage();
+  migrateLegacyDatabaseIfNeeded();
   loadSettings();
   updateTimePreviews();
   updateHomeHistorySummary();
   bindEvents();
+}
+
+// User Registry in LocalStorage
+function getUsersRegistry() {
+  const data = localStorage.getItem(STORAGE_KEY_USERS);
+  if (!data) {
+    localStorage.setItem(STORAGE_KEY_USERS, JSON.stringify(DEFAULT_USERS));
+    return [...DEFAULT_USERS];
+  }
+  try {
+    return JSON.parse(data);
+  } catch (e) {
+    return [...DEFAULT_USERS];
+  }
+}
+
+function saveUsersRegistry(users) {
+  localStorage.setItem(STORAGE_KEY_USERS, JSON.stringify(users));
+}
+
+function initUsersRegistry() {
+  const users = getUsersRegistry();
+  // Ensure default users exist
+  DEFAULT_USERS.forEach(defUser => {
+    if (!users.some(u => u.id === defUser.id)) {
+      users.push(defUser);
+    }
+  });
+  saveUsersRegistry(users);
+}
+
+// Resolve user from URL query param: ?user=topu or storage
+function resolveActiveUserFromURLOrStorage() {
+  const urlParams = new URLSearchParams(window.location.search);
+  const paramUser = urlParams.get('user') || urlParams.get('u') || urlParams.get('id');
+
+  const users = getUsersRegistry();
+  let userToSet = null;
+
+  if (paramUser) {
+    userToSet = users.find(u => u.id.toLowerCase() === paramUser.trim().toLowerCase());
+  }
+
+  if (!userToSet) {
+    const savedId = localStorage.getItem(STORAGE_KEY_ACTIVE_USER);
+    userToSet = users.find(u => u.id === savedId) || users[0]; // defaults to Mugdho
+  }
+
+  setActiveUser(userToSet.id, false);
+}
+
+function setActiveUser(userId, triggerSound = true) {
+  const users = getUsersRegistry();
+  const found = users.find(u => u.id.toLowerCase() === userId.toLowerCase());
+  if (!found) return false;
+
+  state.activeUser = found;
+  localStorage.setItem(STORAGE_KEY_ACTIVE_USER, found.id);
+
+  // Set default level according to user's track
+  if (found.level) {
+    setLevel(found.level);
+  } else {
+    setLevel('all');
+  }
+
+  updateActiveUserUI();
+  updateHomeHistorySummary();
+
+  if (triggerSound) playSound('select');
+  return true;
+}
+
+function updateActiveUserUI() {
+  const u = state.activeUser;
+  if (!u) return;
+
+  // Header User Badge
+  DOM.headerUserAvatar.textContent = u.avatar || '👤';
+  DOM.headerUserName.textContent = u.name;
+  DOM.headerUserRole.textContent = u.role;
+
+  // Setup Strip
+  DOM.stripUserAvatar.textContent = u.avatar || '👤';
+  DOM.stripUserName.textContent = u.name;
+  DOM.stripUserRole.textContent = u.role;
+  DOM.stripUserId.textContent = `ID: ${u.id}`;
+
+  // Exam Top Bar
+  DOM.examDisplayAvatar.textContent = u.avatar || '👤';
+  DOM.examDisplayName.textContent = u.name;
+  DOM.examDisplayRole.textContent = u.role;
+
+  // Dashboard Header
+  DOM.dbActiveAvatar.textContent = u.avatar || '👤';
+  DOM.dbActiveUsername.textContent = u.name;
+  DOM.dbActiveRoleTag.textContent = `Exam Track: ${u.role} • User ID: ${u.id}`;
+
+  DOM.homeUserHistoryTitle.textContent = `${u.name}-এর পূর্বের পরীক্ষার রেকর্ড`;
+}
+
+function setLevel(levelKey) {
+  state.targetLevel = levelKey;
+  DOM.levelCards.forEach(card => {
+    if (card.dataset.level === levelKey) {
+      card.classList.add('selected');
+      const radio = card.querySelector('input');
+      if (radio) radio.checked = true;
+    } else {
+      card.classList.remove('selected');
+    }
+  });
+}
+
+// Migrate any legacy data from before multi-user was added
+function migrateLegacyDatabaseIfNeeded() {
+  const legacy = localStorage.getItem(STORAGE_LEGACY_DB);
+  if (legacy) {
+    try {
+      const records = JSON.parse(legacy);
+      if (Array.isArray(records) && records.length > 0) {
+        const mugdhoKey = `EXAM_HISTORY_mugdho`;
+        const existing = localStorage.getItem(mugdhoKey);
+        if (!existing) {
+          localStorage.setItem(mugdhoKey, JSON.stringify(records));
+        }
+      }
+      localStorage.removeItem(STORAGE_LEGACY_DB);
+    } catch (e) {
+      console.warn("Could not migrate legacy DB", e);
+    }
+  }
 }
 
 function loadSettings() {
@@ -260,10 +439,6 @@ function loadSettings() {
   if (saved) {
     try {
       const parsed = JSON.parse(saved);
-      if (parsed.studentName) {
-        state.studentName = parsed.studentName;
-        DOM.studentNameInput.value = parsed.studentName;
-      }
       if (typeof parsed.soundEnabled === 'boolean') {
         state.soundEnabled = parsed.soundEnabled;
         updateSoundUI();
@@ -276,7 +451,6 @@ function loadSettings() {
 
 function saveSettings() {
   const settings = {
-    studentName: state.studentName,
     soundEnabled: state.soundEnabled
   };
   localStorage.setItem(STORAGE_KEY_SETTINGS, JSON.stringify(settings));
@@ -287,7 +461,6 @@ function updateSoundUI() {
   DOM.soundToggleBtn.title = state.soundEnabled ? 'Mute Sound' : 'Enable Sound';
 }
 
-// Update time preview labels on setup screen
 function updateTimePreviews() {
   const q = state.questionCount;
   DOM.standardTimePreview.textContent = `${q} মিনিট (${q} mins)`;
@@ -296,9 +469,9 @@ function updateTimePreviews() {
 
 // Update quick history summary on home card
 function updateHomeHistorySummary() {
-  const db = getExamDatabase();
+  const db = getUserExamDatabase(state.activeUser.id);
   if (db.length === 0) {
-    DOM.homeHistorySummary.textContent = 'এখনো কোনো পরীক্ষা দেওয়া হয়নি। প্রথম পরীক্ষা শুরু করো!';
+    DOM.homeHistorySummary.textContent = `${state.activeUser.name} এখনো কোনো পরীক্ষা দেয়নি। প্রথম পরীক্ষা শুরু করো!`;
   } else {
     const last = db[db.length - 1];
     DOM.homeHistorySummary.textContent = `সর্বশেষ পরীক্ষা #${last.serial}: ${last.score}/${last.totalQuestions} (${last.percentage}%) • তারিখ: ${last.date}`;
@@ -306,7 +479,7 @@ function updateHomeHistorySummary() {
 }
 
 // ====================================================
-// NAVIGATION & SCREEN SWITCHING
+// SCREEN NAVIGATION
 // ====================================================
 function showScreen(screenId) {
   const screens = [DOM.screenSetup, DOM.screenExam, DOM.screenResult, DOM.screenDashboard];
@@ -327,6 +500,53 @@ function showScreen(screenId) {
     renderDashboard();
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }
+}
+
+// ====================================================
+// USER SWITCHER & LOGIN MODAL
+// ====================================================
+function openUserModal() {
+  renderUserCardsInModal();
+  DOM.createUserForm.classList.add('hidden');
+  DOM.btnToggleCreateUser.textContent = '➕ নতুন ইউজার আইডি তৈরি করুন (Create New User)';
+  DOM.userModal.classList.remove('hidden');
+  playSound('click');
+}
+
+function closeUserModal() {
+  DOM.userModal.classList.add('hidden');
+}
+
+function renderUserCardsInModal() {
+  const users = getUsersRegistry();
+  DOM.modalUserCardsGrid.innerHTML = '';
+
+  users.forEach(u => {
+    const card = document.createElement('div');
+    card.className = 'user-card-item';
+    if (state.activeUser && state.activeUser.id === u.id) {
+      card.classList.add('active-user');
+    }
+
+    card.innerHTML = `
+      <span class="uc-avatar">${u.avatar || '👤'}</span>
+      <div>
+        <strong class="uc-name">${escapeHtml(u.name)}</strong>
+        <span class="uc-role">${escapeHtml(u.role)}</span>
+        <small style="color:var(--text-muted); font-size:0.7rem; font-weight:700;">ID: ${escapeHtml(u.id)}</small>
+      </div>
+    `;
+
+    card.addEventListener('click', () => {
+      setActiveUser(u.id);
+      closeUserModal();
+      if (DOM.screenDashboard.classList.contains('active-screen')) {
+        renderDashboard();
+      }
+    });
+
+    DOM.modalUserCardsGrid.appendChild(card);
+  });
 }
 
 // ====================================================
@@ -357,6 +577,86 @@ function bindEvents() {
     if (state.soundEnabled) playSound('click');
   });
 
+  // User Switcher Openers
+  DOM.headerUserBtn.addEventListener('click', openUserModal);
+  DOM.btnSwitchUserStrip.addEventListener('click', openUserModal);
+  DOM.btnDbSwitchUser.addEventListener('click', openUserModal);
+  DOM.userModalClose.addEventListener('click', closeUserModal);
+
+  // Direct User ID Form Login
+  DOM.directLoginForm.addEventListener('submit', (e) => {
+    e.preventDefault();
+    const idTyped = DOM.directUserIdInput.value.trim().toLowerCase();
+    if (!idTyped) return;
+
+    const users = getUsersRegistry();
+    const found = users.find(u => u.id.toLowerCase() === idTyped);
+
+    if (found) {
+      setActiveUser(found.id);
+      DOM.directUserIdInput.value = '';
+      closeUserModal();
+      if (DOM.screenDashboard.classList.contains('active-screen')) {
+        renderDashboard();
+      }
+    } else {
+      playSound('warning');
+      alert(`⚠️ '${idTyped}' নামের কোনো ইউজার আইডি পাওয়া যায়নি! দয়া করে সঠিক আইডি দিন বা নিচে নতুন ইউজার তৈরি করুন।`);
+    }
+  });
+
+  // Toggle Create User Form
+  DOM.btnToggleCreateUser.addEventListener('click', () => {
+    const isHidden = DOM.createUserForm.classList.contains('hidden');
+    if (isHidden) {
+      DOM.createUserForm.classList.remove('hidden');
+      DOM.btnToggleCreateUser.textContent = '❌ ফরম বন্ধ করুন';
+      DOM.newUserName.focus();
+    } else {
+      DOM.createUserForm.classList.add('hidden');
+      DOM.btnToggleCreateUser.textContent = '➕ নতুন ইউজার আইডি তৈরি করুন (Create New User)';
+    }
+    playSound('click');
+  });
+
+  // Create User Form Submit
+  DOM.createUserForm.addEventListener('submit', (e) => {
+    e.preventDefault();
+    const name = DOM.newUserName.value.trim();
+    const id = DOM.newUserId.value.trim().toLowerCase().replace(/[^a-z0-9_-]/g, '');
+    const role = DOM.newUserRole.value;
+
+    if (!name || !id) {
+      alert('দয়া করে নাম ও ইউজার আইডি লিখুন!');
+      return;
+    }
+
+    const users = getUsersRegistry();
+    if (users.some(u => u.id === id)) {
+      alert(`⚠️ '${id}' ইউজার আইডিটি ইতিমধ্যে ব্যবহার করা হয়েছে! অন্য আইডি দিন।`);
+      return;
+    }
+
+    // Determine avatar & level
+    let avatar = '👤';
+    let level = 'all';
+    if (role.includes('SSC')) { avatar = '🧑‍🎓'; level = 'ssc'; }
+    else if (role.includes('BCS') || role.includes('Job')) { avatar = '👨‍💼'; level = 'bcs'; }
+    else if (role.includes('Class Four') || role.includes('Class Two') || role.includes('Primary')) { avatar = '👦'; level = 'class4'; }
+
+    const newUser = { id, name, role, level, avatar };
+    users.push(newUser);
+    saveUsersRegistry(users);
+
+    DOM.newUserName.value = '';
+    DOM.newUserId.value = '';
+    DOM.createUserForm.classList.add('hidden');
+
+    setActiveUser(id);
+    closeUserModal();
+    alert(`🎉 অভিনন্দন! '${name}' (ID: ${id}) সফলভাবে তৈরি ও লগইন হয়েছে।`);
+  });
+
   // Dashboard Nav Button
   DOM.navDashboardBtn.addEventListener('click', () => {
     if (DOM.screenExam.classList.contains('active-screen') && !state.isExamSubmitted) {
@@ -377,10 +677,16 @@ function bindEvents() {
   DOM.btnDbBackHome.addEventListener('click', () => showScreen('setup'));
   DOM.btnDbEmptyStart.addEventListener('click', () => showScreen('setup'));
 
-  // Setup Form - Student Name
-  DOM.studentNameInput.addEventListener('input', (e) => {
-    state.studentName = e.target.value.trim();
-    saveSettings();
+  // Target Level Card Selection
+  DOM.levelCards.forEach(card => {
+    card.addEventListener('click', () => {
+      DOM.levelCards.forEach(c => c.classList.remove('selected'));
+      card.classList.add('selected');
+      const radio = card.querySelector('input');
+      radio.checked = true;
+      state.targetLevel = card.dataset.level;
+      playSound('click');
+    });
   });
 
   // Setup Form - Mode Selection
@@ -499,13 +805,33 @@ function bindEvents() {
     });
   });
 
-  // Clear Database
+  // Dashboard Tabs (My Records vs Family Leaderboard)
+  DOM.dashboardTabs.forEach(tab => {
+    tab.addEventListener('click', () => {
+      DOM.dashboardTabs.forEach(t => t.classList.remove('active'));
+      tab.classList.add('active');
+      const tabTarget = tab.dataset.dtab;
+
+      if (tabTarget === 'my-history') {
+        DOM.tabMyHistory.classList.add('active-pane');
+        DOM.tabLeaderboard.classList.remove('active-pane');
+        DOM.dbTotalTests.parentElement.parentElement.style.display = 'grid';
+      } else {
+        DOM.tabMyHistory.classList.remove('active-pane');
+        DOM.tabLeaderboard.classList.add('active-pane');
+        renderFamilyLeaderboard();
+      }
+      playSound('click');
+    });
+  });
+
+  // Clear Database (Personal)
   DOM.btnClearDb.addEventListener('click', () => {
     showModal({
-      title: 'সকল রেকর্ড মুছে ফেলবে?',
-      message: 'ড্যাশবোর্ডের সংরক্ষিত সব পরীক্ষার তথ্য চিরতরে মুছে যাবে। তুমি কি নিশ্চিত?',
+      title: `${state.activeUser.name}-এর রেকর্ড মুছে ফেলবেন?`,
+      message: `শুধুমাত্র ${state.activeUser.name}-এর সংরক্ষিত সব পরীক্ষার তথ্য মুছে যাবে। অন্য সদস্যদের কোনো তথ্য মুছবে না। আপনি কি নিশ্চিত?`,
       onConfirm: () => {
-        clearExamDatabase();
+        clearUserExamDatabase(state.activeUser.id);
         renderDashboard();
         updateHomeHistorySummary();
       }
@@ -544,20 +870,25 @@ DOM.modalBtnConfirm.addEventListener('click', () => {
 // ====================================================
 function startExam() {
   playSound('click');
-  const nameInput = DOM.studentNameInput.value.trim();
-  state.studentName = nameInput || 'Student';
-  saveSettings();
 
-  // Filter questions based on mode
-  let pool = [];
+  // Filter pool by Target Level
+  let pool = [...rawQuestions];
+  if (state.targetLevel && state.targetLevel !== 'all') {
+    const levelFiltered = pool.filter(q => q.level === state.targetLevel);
+    if (levelFiltered.length >= 10) {
+      pool = levelFiltered;
+    }
+  }
+
+  // Filter pool by Mode
   if (state.examMode === 'assertive_to_interrogative') {
-    pool = rawQuestions.filter(q => q.type === 'assertive_to_interrogative');
+    pool = pool.filter(q => q.type === 'assertive_to_interrogative');
   } else if (state.examMode === 'interrogative_to_assertive') {
-    pool = rawQuestions.filter(q => q.type === 'interrogative_to_assertive');
+    pool = pool.filter(q => q.type === 'interrogative_to_assertive');
   } else {
     // Mixed: balance both types
-    const p1 = shuffleArray([...rawQuestions.filter(q => q.type === 'assertive_to_interrogative')]);
-    const p2 = shuffleArray([...rawQuestions.filter(q => q.type === 'interrogative_to_assertive')]);
+    const p1 = shuffleArray([...pool.filter(q => q.type === 'assertive_to_interrogative')]);
+    const p2 = shuffleArray([...pool.filter(q => q.type === 'interrogative_to_assertive')]);
     pool = [];
     const maxLen = Math.max(p1.length, p2.length);
     for (let i = 0; i < maxLen; i++) {
@@ -566,14 +897,23 @@ function startExam() {
     }
   }
 
-  // Shuffle pool
-  pool = shuffleArray(pool);
+  // If pool has fewer items than requested, reuse with shuffle
+  if (pool.length < state.questionCount) {
+    const originalLen = pool.length;
+    let extra = shuffleArray([...rawQuestions]);
+    for (let q of extra) {
+      if (pool.length >= state.questionCount) break;
+      if (!pool.some(x => x.sentence === q.sentence)) {
+        pool.push(q);
+      }
+    }
+  }
 
-  // Take requested count (or maximum available if user chose 100 and pool has slightly different count)
+  pool = shuffleArray(pool);
   const targetCount = Math.min(state.questionCount, pool.length);
   const selectedQuestions = pool.slice(0, targetCount);
 
-  // For each question, also shuffle options to prevent pattern memorization
+  // Shuffle options per question
   state.activeQuestions = selectedQuestions.map((q, qIndex) => {
     const originalOptions = q.options.map((optText, origIdx) => ({
       text: optText,
@@ -585,6 +925,7 @@ function startExam() {
 
     return {
       id: qIndex + 1,
+      level: q.level || 'all',
       type: q.type,
       sentence: q.sentence,
       prompt: q.prompt,
@@ -605,7 +946,7 @@ function startExam() {
   setupTimer(targetCount);
 
   // Update UI Elements
-  DOM.examDisplayName.textContent = state.studentName;
+  updateActiveUserUI();
   DOM.totalQCount.textContent = state.activeQuestions.length;
   DOM.paletteTotalCount.textContent = state.activeQuestions.length;
 
@@ -629,10 +970,9 @@ function setupTimer(questionCount) {
     }, 1000);
 
   } else {
-    // Countdown timer
-    let minutesAllotted = questionCount; // standard: 1 min per question
+    let minutesAllotted = questionCount;
     if (state.timerMode === 'speed') {
-      minutesAllotted = Math.ceil(questionCount / 2); // 30 sec per question
+      minutesAllotted = Math.ceil(questionCount / 2);
     }
 
     state.totalSecondsAllotted = minutesAllotted * 60;
@@ -671,12 +1011,11 @@ function stopTimer() {
   }
 }
 
-// Render the active question on screen
+// Render active question
 function renderActiveQuestion() {
   const q = state.activeQuestions[state.currentQuestionIndex];
   if (!q) return;
 
-  // Question Index & Progress Bar
   const currentNum = state.currentQuestionIndex + 1;
   const total = state.activeQuestions.length;
   DOM.currentQIndex.textContent = currentNum;
@@ -691,6 +1030,15 @@ function renderActiveQuestion() {
     DOM.qCategoryIcon.textContent = '⬅️';
     DOM.qCategoryText.textContent = 'Interrogative to Assertive';
     DOM.qInstructionText.textContent = 'Change into Assertive (বর্ণনামূলক বাক্য):';
+  }
+
+  // Level Badge
+  if (q.level === 'bcs') {
+    DOM.qLevelBadge.innerHTML = '<span>💼 BCS & Job Standard</span>';
+  } else if (q.level === 'ssc') {
+    DOM.qLevelBadge.innerHTML = '<span>🧑‍🎓 SSC Board Standard</span>';
+  } else {
+    DOM.qLevelBadge.innerHTML = '<span>👦 Class 2 - 4 Standard</span>';
   }
 
   DOM.qSentenceText.textContent = q.sentence;
@@ -808,7 +1156,7 @@ function submitExam() {
   const grade = calculateGrade(percentage);
   const timeTakenFormatted = formatTime(state.secondsElapsed);
 
-  // Create Record for Database
+  // Date & Time
   const now = new Date();
   const dateFormatted = now.toLocaleDateString('en-GB', {
     day: '2-digit',
@@ -821,16 +1169,24 @@ function submitExam() {
     hour12: true
   });
 
-  const db = getExamDatabase();
-  const nextSerial = db.length > 0 ? db[db.length - 1].serial + 1 : 1;
+  // User-specific database
+  const userDb = getUserExamDatabase(state.activeUser.id);
+  const nextSerial = userDb.length > 0 ? userDb[userDb.length - 1].serial + 1 : 1;
+
+  let levelLabel = 'All Levels';
+  if (state.targetLevel === 'ssc') levelLabel = 'SSC Exam';
+  else if (state.targetLevel === 'bcs') levelLabel = 'BCS Exam';
+  else if (state.targetLevel === 'class4') levelLabel = 'Class 2-4';
 
   const examRecord = {
     serial: nextSerial,
+    userId: state.activeUser.id,
+    studentName: state.activeUser.name,
     timestamp: now.getTime(),
     date: dateFormatted,
     time: timeFormatted,
-    studentName: state.studentName,
     mode: formatModeName(state.examMode),
+    level: levelLabel,
     totalQuestions: totalQuestions,
     score: correctCount,
     wrong: wrongCount,
@@ -840,8 +1196,7 @@ function submitExam() {
     timeTaken: timeTakenFormatted
   };
 
-  // Save to Database
-  saveExamToDatabase(examRecord);
+  saveUserExamRecord(state.activeUser.id, examRecord);
 
   // Present Results
   displayResults({
@@ -849,7 +1204,6 @@ function submitExam() {
     detailedQuestions
   });
 
-  // Launch celebration confetti if good score!
   if (percentage >= 50) {
     confetti.fire(3500);
   }
@@ -857,7 +1211,6 @@ function submitExam() {
   showScreen('result');
 }
 
-// Calculate Grade and Stars
 function calculateGrade(pct) {
   if (pct >= 90) return 'A+';
   if (pct >= 80) return 'A';
@@ -878,7 +1231,6 @@ function formatModeName(mode) {
 function displayResults({ examRecord, detailedQuestions }) {
   state.lastResultData = { examRecord, detailedQuestions };
 
-  // Stars & Encouragement
   const pct = examRecord.percentage;
   if (pct >= 85) {
     DOM.resultStars.textContent = '⭐⭐⭐';
@@ -902,12 +1254,10 @@ function displayResults({ examRecord, detailedQuestions }) {
   DOM.statSkippedCount.textContent = examRecord.skipped;
   DOM.statTimeTaken.textContent = examRecord.timeTaken;
 
-  // Filter tab counts
   DOM.filterCntAll.textContent = detailedQuestions.length;
   DOM.filterCntWrong.textContent = examRecord.wrong;
   DOM.filterCntCorrect.textContent = examRecord.score;
 
-  // Reset tab to "All"
   DOM.filterTabs.forEach(t => t.classList.remove('active'));
   DOM.filterTabs[0].classList.add('active');
 
@@ -920,7 +1270,7 @@ function renderReviewCards(questions, filter) {
   const filtered = questions.filter(q => {
     if (filter === 'wrong') return !q.isCorrect && !q.isSkipped;
     if (filter === 'correct') return q.isCorrect;
-    return true; // 'all'
+    return true;
   });
 
   if (filtered.length === 0) {
@@ -961,7 +1311,7 @@ function renderReviewCards(questions, filter) {
 
     card.innerHTML = `
       <div class="review-card-top">
-        <span class="q-no">প্রশ্ন #${q.id} • ${q.type === 'assertive_to_interrogative' ? 'Assertive ➔ Interrogative' : 'Interrogative ➔ Assertive'}</span>
+        <span class="q-no">প্রশ্ন #${q.id} • ${q.type === 'assertive_to_interrogative' ? 'Assertive ➔ Interrogative' : 'Interrogative ➔ Assertive'} • Level: ${q.level.toUpperCase()}</span>
         <span class="status-badge ${statusClass}">${statusText}</span>
       </div>
 
@@ -997,31 +1347,35 @@ function filterReviewItems(filter) {
 }
 
 // ====================================================
-// DATABASE & DASHBOARD LOGIC (LocalStorage)
+// PER-USER DATABASE & DASHBOARD LOGIC
 // ====================================================
-function getExamDatabase() {
-  const data = localStorage.getItem(STORAGE_KEY_DB);
+function getUserDbKey(userId) {
+  return `EXAM_HISTORY_${userId.toLowerCase()}`;
+}
+
+function getUserExamDatabase(userId) {
+  const data = localStorage.getItem(getUserDbKey(userId));
   if (!data) return [];
   try {
     return JSON.parse(data);
   } catch (e) {
-    console.error("Database reading error", e);
     return [];
   }
 }
 
-function saveExamToDatabase(record) {
-  const db = getExamDatabase();
+function saveUserExamRecord(userId, record) {
+  const db = getUserExamDatabase(userId);
   db.push(record);
-  localStorage.setItem(STORAGE_KEY_DB, JSON.stringify(db));
+  localStorage.setItem(getUserDbKey(userId), JSON.stringify(db));
 }
 
-function clearExamDatabase() {
-  localStorage.removeItem(STORAGE_KEY_DB);
+function clearUserExamDatabase(userId) {
+  localStorage.removeItem(getUserDbKey(userId));
 }
 
 function renderDashboard() {
-  const db = getExamDatabase();
+  updateActiveUserUI();
+  const db = getUserExamDatabase(state.activeUser.id);
 
   if (db.length === 0) {
     DOM.dbEmptyState.classList.remove('hidden');
@@ -1029,51 +1383,126 @@ function renderDashboard() {
     DOM.dbTotalTests.textContent = '0';
     DOM.dbBestScore.textContent = '--';
     DOM.dbAvgAccuracy.textContent = '--';
-    return;
+  } else {
+    DOM.dbEmptyState.classList.add('hidden');
+    DOM.dbTotalTests.textContent = db.length;
+
+    let maxPct = 0;
+    let totalPctSum = 0;
+
+    db.forEach(item => {
+      if (item.percentage > maxPct) maxPct = item.percentage;
+      totalPctSum += item.percentage;
+    });
+
+    DOM.dbBestScore.textContent = `${maxPct}%`;
+    DOM.dbAvgAccuracy.textContent = `${Math.round(totalPctSum / db.length)}%`;
+
+    DOM.historyTableBody.innerHTML = '';
+    const reversed = [...db].reverse();
+
+    reversed.forEach(record => {
+      const tr = document.createElement('tr');
+
+      let gradeClass = 'grade-B';
+      if (record.grade === 'A+' || record.grade === 'A') gradeClass = 'grade-A';
+      else if (record.grade === 'C') gradeClass = 'grade-C';
+      else if (record.grade === 'F') gradeClass = 'grade-F';
+
+      tr.innerHTML = `
+        <td><span class="serial-pill">#${record.serial}</span></td>
+        <td>${escapeHtml(record.date)} <br><small style="color:var(--text-muted);">${escapeHtml(record.time)}</small></td>
+        <td>${escapeHtml(record.mode)}</td>
+        <td><span class="tag-level">${escapeHtml(record.level || 'All')}</span></td>
+        <td>${record.totalQuestions} টি</td>
+        <td><strong>${record.score} / ${record.totalQuestions}</strong></td>
+        <td>${record.percentage}%</td>
+        <td>${escapeHtml(record.timeTaken)}</td>
+        <td><span class="grade-badge ${gradeClass}">${record.grade}</span></td>
+      `;
+
+      DOM.historyTableBody.appendChild(tr);
+    });
   }
 
-  DOM.dbEmptyState.classList.add('hidden');
-  DOM.dbTotalTests.textContent = db.length;
+  // Also render Family Leaderboard
+  renderFamilyLeaderboard();
+}
 
-  // Best score
-  let maxPct = 0;
-  let totalPctSum = 0;
+function renderFamilyLeaderboard() {
+  const users = getUsersRegistry();
+  const leaderData = users.map(u => {
+    const db = getUserExamDatabase(u.id);
+    let best = 0;
+    let sum = 0;
+    let lastDate = 'কখনো দেয়নি';
 
-  db.forEach(item => {
-    if (item.percentage > maxPct) maxPct = item.percentage;
-    totalPctSum += item.percentage;
+    if (db.length > 0) {
+      db.forEach(rec => {
+        if (rec.percentage > best) best = rec.percentage;
+        sum += rec.percentage;
+      });
+      const lastRec = db[db.length - 1];
+      lastDate = `${lastRec.date} (${lastRec.score}/${lastRec.totalQuestions})`;
+    }
+
+    return {
+      user: u,
+      totalTests: db.length,
+      bestScore: best,
+      avgScore: db.length > 0 ? Math.round(sum / db.length) : 0,
+      lastDate: lastDate
+    };
   });
 
-  DOM.dbBestScore.textContent = `${maxPct}%`;
-  DOM.dbAvgAccuracy.textContent = `${Math.round(totalPctSum / db.length)}%`;
+  // Sort by highest score, then total tests
+  leaderData.sort((a, b) => b.bestScore - a.bestScore || b.totalTests - a.totalTests);
 
-  // Render rows in reverse order (most recent first)
-  DOM.historyTableBody.innerHTML = '';
-  const reversed = [...db].reverse();
+  DOM.leaderboardTableBody.innerHTML = '';
 
-  reversed.forEach(record => {
+  leaderData.forEach((item, index) => {
     const tr = document.createElement('tr');
+    const isCurrent = state.activeUser && state.activeUser.id === item.user.id;
+    if (isCurrent) tr.style.background = '#f0fdf4';
 
-    let gradeClass = 'grade-B';
-    if (record.grade === 'A+' || record.grade === 'A') gradeClass = 'grade-A';
-    else if (record.grade === 'C') gradeClass = 'grade-C';
-    else if (record.grade === 'F') gradeClass = 'grade-F';
+    let medal = `#${index + 1}`;
+    if (index === 0 && item.bestScore > 0) medal = '🥇 ১ম';
+    else if (index === 1 && item.bestScore > 0) medal = '🥈 ২য়';
+    else if (index === 2 && item.bestScore > 0) medal = '🥉 ৩য়';
 
     tr.innerHTML = `
-      <td><span class="serial-pill">#${record.serial}</span></td>
-      <td>${escapeHtml(record.date)} <br><small style="color:var(--text-muted);">${escapeHtml(record.time)}</small></td>
-      <td><strong>${escapeHtml(record.studentName || 'Student')}</strong></td>
-      <td>${escapeHtml(record.mode)}</td>
-      <td>${record.totalQuestions} টি</td>
-      <td><strong>${record.score} / ${record.totalQuestions}</strong></td>
-      <td>${record.percentage}%</td>
-      <td>${escapeHtml(record.timeTaken)}</td>
-      <td><span class="grade-badge ${gradeClass}">${record.grade}</span></td>
+      <td>
+        <span style="font-size:1.2rem; margin-right:4px;">${item.user.avatar || '👤'}</span>
+        <strong>${escapeHtml(item.user.name)}</strong>
+        ${isCurrent ? '<small style="color:var(--success); font-weight:800;"> (তুমি)</small>' : ''}
+        <br><small style="color:var(--text-muted);">${medal}</small>
+      </td>
+      <td><code>${escapeHtml(item.user.id)}</code></td>
+      <td><span class="strip-role">${escapeHtml(item.user.role)}</span></td>
+      <td><strong>${item.totalTests} টি</strong></td>
+      <td><strong style="color:var(--primary); font-size:1.05rem;">${item.totalTests > 0 ? item.bestScore + '%' : '--'}</strong></td>
+      <td>${item.totalTests > 0 ? item.avgScore + '%' : '--'}</td>
+      <td><small>${escapeHtml(item.lastDate)}</small></td>
+      <td>
+        ${!isCurrent ? `
+          <button type="button" class="pill-btn light small" onclick="switchUserFromLeaderboard('${item.user.id}')">
+            লগইন ➔
+          </button>
+        ` : `
+          <span style="color:var(--success); font-weight:800; font-size:0.8rem;">সক্রিয় ✓</span>
+        `}
+      </td>
     `;
 
-    DOM.historyTableBody.appendChild(tr);
+    DOM.leaderboardTableBody.appendChild(tr);
   });
 }
+
+// Global hook for leaderboard switch button
+window.switchUserFromLeaderboard = function(userId) {
+  setActiveUser(userId);
+  renderDashboard();
+};
 
 // ====================================================
 // UTILITY FUNCTIONS

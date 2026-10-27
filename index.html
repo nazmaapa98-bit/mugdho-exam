@@ -3,12 +3,12 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-  <title>Changing Sentences Exam | Class 2 Grammar Hero</title>
-  <meta name="description" content="Fun & Interactive Changing Sentence Exam for Class 2 kids: Assertive to Interrogative & Interrogative to Assertive with Timer and Dashboard." />
+  <title>Changing Sentences Exam | Multi-User Family Portal</title>
+  <meta name="description" content="Changing Sentence Exam: Assertive ⇄ Interrogative with User Profiles for Mugdho (Class 4), Topu (SSC), Tonmoy (BCS), Maliha (BCS) & Family." />
 
-  <!-- Google Fonts: Fredoka & Nunito for child-friendly legibility -->
+  <!-- Google Fonts: Fredoka & Nunito -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="preconnect" href="https://fonts.gstatic.com">
   <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Nunito:wght@600;700;800;900&display=swap" rel="stylesheet">
 
   <link rel="stylesheet" href="style.css" />
@@ -24,13 +24,25 @@
         <span class="brand-icon">⭐</span>
         <div class="brand-text">
           <h1>Grammar Hero</h1>
-          <span class="sub-badge">Class 2 • Changing Sentences</span>
+          <span class="sub-badge" id="header-portal-tag">Family Exam Portal</span>
         </div>
       </div>
+
       <div class="header-controls">
+        <!-- Active User Profile Button -->
+        <button id="header-user-btn" class="user-badge-btn" title="Click to Switch User Profile">
+          <span class="u-avatar" id="header-user-avatar">👦</span>
+          <div class="u-info">
+            <span class="u-name" id="header-user-name">Mugdho</span>
+            <span class="u-role" id="header-user-role">Class Four</span>
+          </div>
+          <span class="u-arrow">▾</span>
+        </button>
+
         <button id="sound-toggle-btn" class="icon-btn" title="Toggle Sound">
           <span id="sound-icon">🔊</span>
         </button>
+
         <button id="nav-dashboard-btn" class="pill-btn nav-btn">
           📊 <span>Dashboard</span>
         </button>
@@ -45,27 +57,69 @@
            ========================================== -->
       <section id="screen-setup" class="screen-panel active-screen">
         <div class="hero-banner">
-          <div class="hero-character">🎓 🎈</div>
+          <div class="hero-character" id="hero-avatar-anim">🎓 🎈</div>
           <h2 class="hero-title">Changing Sentences Exam</h2>
           <p class="hero-desc">
-            Assertive ⇄ Interrogative অনুশীলন ও পরীক্ষা। সুন্দর করে বুঝে উত্তর দাও!
+            Assertive ⇄ Interrogative অনুশীলন ও পরীক্ষা। নিজের প্রোফাইল অনুযায়ী পরীক্ষা দাও!
           </p>
         </div>
 
         <div class="setup-card">
-          <!-- Student Name Input -->
+          <!-- Active User Bar inside Setup -->
+          <div class="active-user-strip">
+            <div class="strip-left">
+              <span class="strip-avatar" id="strip-user-avatar">👦</span>
+              <div>
+                <strong id="strip-user-name">Mugdho</strong>
+                <span class="strip-role" id="strip-user-role">Class Four</span>
+                <span class="strip-id" id="strip-user-id">ID: mugdho</span>
+              </div>
+            </div>
+            <button type="button" class="pill-btn light small" id="btn-switch-user-strip">
+              🔄 ইউজার পরিবর্তন (Switch User)
+            </button>
+          </div>
+
+          <!-- Difficulty / Exam Level Selector -->
           <div class="form-group">
-            <label for="student-name">
-              <span class="label-icon">👤</span> শিক্ষার্থীর নাম (Student Name):
-            </label>
-            <input 
-              type="text" 
-              id="student-name" 
-              class="text-input" 
-              placeholder="যেমন: মুগ্ধ / Mugdho" 
-              maxlength="30"
-              autocomplete="name"
-            />
+            <label><span class="label-icon">📚</span> পরীক্ষার স্তর (Target Level):</label>
+            <div class="level-grid" id="level-selector-grid">
+              <label class="level-card" data-level="class4">
+                <input type="radio" name="target-level" value="class4" />
+                <div class="lvl-content">
+                  <span class="lvl-icon">👦</span>
+                  <strong>Class 2 - 4</strong>
+                  <small>Primary School Standard</small>
+                </div>
+              </label>
+
+              <label class="level-card" data-level="ssc">
+                <input type="radio" name="target-level" value="ssc" />
+                <div class="lvl-content">
+                  <span class="lvl-icon">🧑‍🎓</span>
+                  <strong>SSC Exam</strong>
+                  <small>Board Transformation Standard</small>
+                </div>
+              </label>
+
+              <label class="level-card" data-level="bcs">
+                <input type="radio" name="target-level" value="bcs" />
+                <div class="lvl-content">
+                  <span class="lvl-icon">👨‍💼</span>
+                  <strong>BCS & Job Exam</strong>
+                  <small>Advanced & Competitive Standard</small>
+                </div>
+              </label>
+
+              <label class="level-card" data-level="all">
+                <input type="radio" name="target-level" value="all" checked />
+                <div class="lvl-content">
+                  <span class="lvl-icon">🌐</span>
+                  <strong>All Combined</strong>
+                  <small>সকল স্তরের মিশ্রিত প্রশ্ন</small>
+                </div>
+              </label>
+            </div>
           </div>
 
           <!-- Exam Mode Selection -->
@@ -131,15 +185,15 @@
             <div class="timer-selector">
               <button type="button" class="time-btn selected" data-time-mode="standard">
                 <span>⏱️ স্বাভাবিক (Standard)</span>
-                <small id="standard-time-preview">20 মিনিট</small>
+                <small id="standard-time-preview">20 মিনিট (20 mins)</small>
               </button>
               <button type="button" class="time-btn" data-time-mode="speed">
                 <span>⚡ স্পিড টেস্ট (Speed Test)</span>
-                <small id="speed-time-preview">10 মিনিট</small>
+                <small id="speed-time-preview">10 মিনিট (10 mins)</small>
               </button>
               <button type="button" class="time-btn" data-time-mode="notimer">
                 <span>🧘 সময়সীমা ছাড়া (No Timer)</span>
-                <small>আস্তে ধীরে দাও</small>
+                <small>ধীরেসুস্থে অনুশীলন</small>
               </button>
             </div>
           </div>
@@ -155,11 +209,11 @@
           <div class="sc-left">
             <span class="sc-icon">🏆</span>
             <div>
-              <h4>পূর্বের পরীক্ষার রেকর্ড (Exam History)</h4>
+              <h4 id="home-user-history-title">আমার পূর্বের পরীক্ষার রেকর্ড</h4>
               <p id="home-history-summary">এখনো কোনো পরীক্ষা দেওয়া হয়নি। প্রথম পরীক্ষা শুরু করো!</p>
             </div>
           </div>
-          <button class="pill-btn light" id="shortcut-open-db">রেকর্ড দেখুন ➔</button>
+          <button class="pill-btn light" id="shortcut-open-db">ড্যাশবোর্ড দেখুন ➔</button>
         </div>
       </section>
 
@@ -172,8 +226,9 @@
         <div class="exam-header-bar">
           <div class="exam-meta">
             <div class="student-tag">
-              <span class="tag-avatar">👦</span>
-              <span id="exam-display-name">Student</span>
+              <span class="tag-avatar" id="exam-display-avatar">👦</span>
+              <span id="exam-display-name">Mugdho</span>
+              <small class="tag-level" id="exam-display-role">Class Four</small>
             </div>
             <div class="q-progress-pill">
               Question <span id="current-q-index">1</span> of <span id="total-q-count">20</span>
@@ -193,9 +248,14 @@
 
         <!-- Exam Question Card Area -->
         <div class="exam-question-card">
-          <div class="q-category-tag" id="q-category-label">
-            <span id="q-category-icon">🔄</span>
-            <span id="q-category-text">Assertive to Interrogative</span>
+          <div class="card-tags-row">
+            <div class="q-category-tag" id="q-category-label">
+              <span id="q-category-icon">🔄</span>
+              <span id="q-category-text">Assertive to Interrogative</span>
+            </div>
+            <div class="q-level-tag" id="q-level-badge">
+              <span>🎯 SSC Standard</span>
+            </div>
           </div>
 
           <div class="q-prompt-box">
@@ -206,7 +266,7 @@
           </div>
 
           <div class="options-container" id="options-grid">
-            <!-- 4 Dynamic Option Buttons will be rendered here -->
+            <!-- 4 Dynamic Option Buttons rendered here -->
           </div>
         </div>
 
@@ -216,7 +276,7 @@
             <button id="btn-prev-q" class="ctrl-btn secondary" disabled>
               ⬅️ Previous
             </button>
-            <button id="btn-clear-choice" class="ctrl-btn text-only" title="Clear your answer for this question">
+            <button id="btn-clear-choice" class="ctrl-btn text-only" title="Clear selection">
               🧹 Clear
             </button>
           </div>
@@ -249,7 +309,7 @@
             <span class="legend-item"><span class="dot current"></span> Current</span>
           </div>
           <div class="palette-grid" id="palette-buttons-grid">
-            <!-- 1..20..100 numbers dynamically generated -->
+            <!-- Numbers generated dynamically -->
           </div>
         </div>
       </section>
@@ -344,14 +404,30 @@
       <section id="screen-dashboard" class="screen-panel">
         <div class="dashboard-header-card">
           <div class="dh-top">
-            <div>
-              <h2>📊 পরীক্ষার ফলাফল ড্যাশবোর্ড (Exam Dashboard)</h2>
-              <p>সকল পরীক্ষার তারিখ, সময়, ক্রমিক নম্বর ও অর্জিত নম্বর এখানে সংরক্ষিত থাকে।</p>
+            <div class="dh-profile-title">
+              <span class="db-user-avatar" id="db-active-avatar">👦</span>
+              <div>
+                <h2><span id="db-active-username">Mugdho</span>-এর পরীক্ষার ড্যাশবোর্ড</h2>
+                <p id="db-active-role-tag">Exam Track: Class Four • User ID: mugdho</p>
+              </div>
             </div>
-            <button id="btn-db-back-home" class="pill-btn light">🏠 হোম পেইজ</button>
+            <div class="dh-actions">
+              <button id="btn-db-switch-user" class="pill-btn secondary small">🔄 ইউজার বদলান</button>
+              <button id="btn-db-back-home" class="pill-btn light small">🏠 হোম পেইজ</button>
+            </div>
           </div>
 
-          <div class="db-summary-boxes">
+          <!-- Dashboard Tabs -->
+          <div class="dashboard-tabs">
+            <button class="d-tab-btn active" data-dtab="my-history">
+              📋 আমার পরীক্ষার ইতিহাস (My Records)
+            </button>
+            <button class="d-tab-btn" data-dtab="family-leaderboard">
+              🏆 পারিবারিক লিডারবোর্ড (Family Ranking)
+            </button>
+          </div>
+
+          <div class="db-summary-boxes" id="db-personal-metrics">
             <div class="db-metric-box">
               <span class="db-m-num" id="db-total-tests">0</span>
               <span class="db-m-lbl">মোট পরীক্ষা সম্পন্ন</span>
@@ -367,48 +443,156 @@
           </div>
         </div>
 
-        <div class="dashboard-table-card">
-          <div class="table-topbar">
-            <h3>📋 সংরক্ষিত পরীক্ষার তালিকা (History Records)</h3>
-            <div class="table-actions">
-              <button id="btn-clear-db" class="danger-btn-sm" title="Clear all exam records">
-                🗑️ রেকর্ড মুছে ফেলুন (Clear All)
-              </button>
+        <!-- TAB CONTENT 1: PERSONAL EXAM HISTORY -->
+        <div id="tab-content-my-history" class="dtab-pane active-pane">
+          <div class="dashboard-table-card">
+            <div class="table-topbar">
+              <h3 id="history-table-title">📋 আমার সংরক্ষিত পরীক্ষার তালিকা</h3>
+              <div class="table-actions">
+                <button id="btn-clear-db" class="danger-btn-sm" title="Clear this user's records">
+                  🗑️ শুধু আমার রেকর্ড মুছুন
+                </button>
+              </div>
+            </div>
+
+            <div class="table-responsive">
+              <table class="history-table">
+                <thead>
+                  <tr>
+                    <th>ক্রমিক (Serial)</th>
+                    <th>তারিখ ও সময় (Date & Time)</th>
+                    <th>ধরণ (Mode)</th>
+                    <th>স্তর (Level)</th>
+                    <th>প্রশ্ন সংখ্যা</th>
+                    <th>অর্জিত নম্বর (Score)</th>
+                    <th>শতকরা (Rate)</th>
+                    <th>সময় (Time)</th>
+                    <th>গ্রেড (Grade)</th>
+                  </tr>
+                </thead>
+                <tbody id="history-table-body">
+                  <!-- Dynamically rendered rows from LocalStorage database -->
+                </tbody>
+              </table>
+            </div>
+
+            <!-- Empty State -->
+            <div id="db-empty-state" class="empty-state hidden">
+              <span class="empty-icon">📭</span>
+              <h4>এই ইউজারের এখনো কোনো পরীক্ষার রেকর্ড নেই!</h4>
+              <p>একটি পরীক্ষা সম্পন্ন করলেই স্বয়ংক্রিয়ভাবে তার বিবরণ এখানে জমা হবে।</p>
+              <button class="pill-btn primary" id="btn-db-empty-start">এখনই পরীক্ষা শুরু করো 🚀</button>
             </div>
           </div>
+        </div>
 
-          <div class="table-responsive">
-            <table class="history-table">
-              <thead>
-                <tr>
-                  <th>ক্রমিক (Serial)</th>
-                  <th>তারিখ ও সময় (Date & Time)</th>
-                  <th>শিক্ষার্থী (Name)</th>
-                  <th>ধরণ (Mode)</th>
-                  <th>প্রশ্ন সংখ্যা</th>
-                  <th>অর্জিত নম্বর (Score)</th>
-                  <th>শতকরা (Rate)</th>
-                  <th>সময় (Time)</th>
-                  <th>গ্রেড (Grade)</th>
-                </tr>
-              </thead>
-              <tbody id="history-table-body">
-                <!-- Dynamically rendered rows from LocalStorage database -->
-              </tbody>
-            </table>
-          </div>
+        <!-- TAB CONTENT 2: FAMILY LEADERBOARD -->
+        <div id="tab-content-family-leaderboard" class="dtab-pane">
+          <div class="dashboard-table-card">
+            <div class="table-topbar">
+              <h3>🏆 পারিবারিক সদস্য পারফরম্যান্স ও র‍্যাংকিং</h3>
+              <small style="color:var(--text-muted); font-weight:700;">টপু, তন্ময়, মালিহা, মুগ্ধ ও পরিবারের সকল সদস্যের অগ্রগতি</small>
+            </div>
 
-          <!-- Empty State -->
-          <div id="db-empty-state" class="empty-state hidden">
-            <span class="empty-icon">📭</span>
-            <h4>এখনো কোনো পরীক্ষার তথ্য জমা হয়নি!</h4>
-            <p>একটি পরীক্ষা সম্পন্ন করলেই স্বয়ংক্রিয়ভাবে তার বিবরণ এখানে জমা হবে।</p>
-            <button class="pill-btn primary" id="btn-db-empty-start">এখনই পরীক্ষা শুরু করো 🚀</button>
+            <div class="table-responsive">
+              <table class="history-table leaderboard-table">
+                <thead>
+                  <tr>
+                    <th>সদস্য (Member)</th>
+                    <th>ইউজার আইডি (User ID)</th>
+                    <th>পরীক্ষার লক্ষ্য (Role)</th>
+                    <th>মোট পরীক্ষা</th>
+                    <th>সর্বোচ্চ স্কোর (Best)</th>
+                    <th>গড় স্কোর (Average)</th>
+                    <th>সর্বশেষ পরীক্ষা</th>
+                    <th>অ্যাকশন</th>
+                  </tr>
+                </thead>
+                <tbody id="leaderboard-table-body">
+                  <!-- Generated from all user accounts -->
+                </tbody>
+              </table>
+            </div>
           </div>
         </div>
       </section>
 
     </main>
+
+    <!-- ==========================================
+         USER SWITCHER & LOGIN MODAL
+         ========================================== -->
+    <div id="user-modal" class="modal-overlay hidden">
+      <div class="modal-box user-modal-box">
+        <div class="modal-header-row">
+          <h3>👥 ইউজার প্রোফাইল নির্বাচন ও লগইন</h3>
+          <button id="user-modal-close" class="icon-close-btn">&times;</button>
+        </div>
+        <p class="modal-sub">যার প্রোফাইল সেটিতে ক্লিক করুন, অথবা নিজের আইডি দিয়ে লগইন করুন:</p>
+
+        <!-- Predefined / Registered User Cards Grid -->
+        <div class="user-cards-grid" id="modal-user-cards-grid">
+          <!-- Mugdho, Topu, Tonmoy, Maliha and custom users rendered here -->
+        </div>
+
+        <div class="modal-divider">
+          <span>অথবা ইউজার আইডি দিয়ে লগইন করুন</span>
+        </div>
+
+        <!-- Direct User ID Login Form -->
+        <form id="direct-login-form" class="direct-login-row">
+          <input 
+            type="text" 
+            id="direct-user-id-input" 
+            class="text-input" 
+            placeholder="User ID লিখুন (যেমন: topu, tonmoy, maliha, mugdho)"
+            autocomplete="off"
+            required
+          />
+          <button type="submit" class="pill-btn primary">লগইন ➔</button>
+        </form>
+
+        <div class="modal-divider">
+          <span>নতুন সদস্য যুক্ত করতে চান?</span>
+        </div>
+
+        <!-- Add New User Trigger & Form -->
+        <div class="create-user-section">
+          <button type="button" id="btn-toggle-create-user" class="pill-btn light full-w">
+            ➕ নতুন ইউজার আইডি তৈরি করুন (Create New User)
+          </button>
+
+          <form id="create-user-form" class="create-user-form hidden">
+            <div class="form-group-compact">
+              <label for="new-user-name">নাম (Full Name):</label>
+              <input type="text" id="new-user-name" class="text-input" placeholder="যেমন: সাদিয়া / রিয়া" required />
+            </div>
+
+            <div class="form-group-compact">
+              <label for="new-user-id">ইউজার আইডি (User ID - ছোট হাতের অক্ষর):</label>
+              <input type="text" id="new-user-id" class="text-input" placeholder="যেমন: sadia, bou, shuvo" pattern="[a-zA-Z0-9_\-]+" required />
+            </div>
+
+            <div class="form-group-compact">
+              <label for="new-user-role">পরীক্ষার লক্ষ্য (Exam Target):</label>
+              <select id="new-user-role" class="select-input">
+                <option value="SSC Exam">🧑‍🎓 SSC Exam</option>
+                <option value="BCS Exam">👨‍💼 BCS Exam</option>
+                <option value="Class Four">👦 Class Four (Class 4)</option>
+                <option value="Class Two">🧒 Class Two (Class 2)</option>
+                <option value="Primary School">🎒 Primary School</option>
+                <option value="Job / Competitive">💼 Job / Competitive Exam</option>
+                <option value="General English">📚 General English Learner</option>
+              </select>
+            </div>
+
+            <button type="submit" class="start-btn small">
+              ✅ অ্যাকাউন্ট তৈরি ও লগইন করুন
+            </button>
+          </form>
+        </div>
+      </div>
+    </div>
 
     <!-- Global Confirmation Modal -->
     <div id="confirm-modal" class="modal-overlay hidden">
@@ -418,14 +602,14 @@
         <p id="modal-message">তুমি কি এখনই পরীক্ষাটি শেষ ও জমা দিতে চাও?</p>
         <div class="modal-buttons">
           <button id="modal-btn-cancel" class="modal-btn cancel">না, ফিরে যাই</button>
-          <button id="modal-btn-confirm" class="modal-btn confirm">হ্যাঁ, সাবমিট করো</button>
+          <button id="modal-btn-confirm" class="modal-btn confirm">হ্যাঁ, নিশ্চিত</button>
         </div>
       </div>
     </div>
 
     <!-- Footer -->
     <footer class="app-footer">
-      <p>❤️ Class 2 Changing Sentences Master • Designed for easy learning on mobile, tablet & PC.</p>
+      <p>❤️ Changing Sentences Family Portal • Designed for Mugdho, Topu, Tonmoy, Maliha & Family.</p>
     </footer>
   </div>
 
