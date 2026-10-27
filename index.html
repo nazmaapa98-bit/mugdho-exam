@@ -1,0 +1,436 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>Changing Sentences Exam | Class 2 Grammar Hero</title>
+  <meta name="description" content="Fun & Interactive Changing Sentence Exam for Class 2 kids: Assertive to Interrogative & Interrogative to Assertive with Timer and Dashboard." />
+
+  <!-- Google Fonts: Fredoka & Nunito for child-friendly legibility -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Nunito:wght@600;700;800;900&display=swap" rel="stylesheet">
+
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <!-- Canvas for celebration confetti -->
+  <canvas id="confetti-canvas"></canvas>
+
+  <div class="app-container">
+    <!-- Top Global Header -->
+    <header class="app-header">
+      <div class="brand" id="brand-home-btn" role="button" tabindex="0" title="Go to Home">
+        <span class="brand-icon">⭐</span>
+        <div class="brand-text">
+          <h1>Grammar Hero</h1>
+          <span class="sub-badge">Class 2 • Changing Sentences</span>
+        </div>
+      </div>
+      <div class="header-controls">
+        <button id="sound-toggle-btn" class="icon-btn" title="Toggle Sound">
+          <span id="sound-icon">🔊</span>
+        </button>
+        <button id="nav-dashboard-btn" class="pill-btn nav-btn">
+          📊 <span>Dashboard</span>
+        </button>
+      </div>
+    </header>
+
+    <!-- MAIN SCREENS CONTAINER -->
+    <main class="main-content">
+
+      <!-- ==========================================
+           SCREEN 1: WELCOME & EXAM SETUP
+           ========================================== -->
+      <section id="screen-setup" class="screen-panel active-screen">
+        <div class="hero-banner">
+          <div class="hero-character">🎓 🎈</div>
+          <h2 class="hero-title">Changing Sentences Exam</h2>
+          <p class="hero-desc">
+            Assertive ⇄ Interrogative অনুশীলন ও পরীক্ষা। সুন্দর করে বুঝে উত্তর দাও!
+          </p>
+        </div>
+
+        <div class="setup-card">
+          <!-- Student Name Input -->
+          <div class="form-group">
+            <label for="student-name">
+              <span class="label-icon">👤</span> শিক্ষার্থীর নাম (Student Name):
+            </label>
+            <input 
+              type="text" 
+              id="student-name" 
+              class="text-input" 
+              placeholder="যেমন: মুগ্ধ / Mugdho" 
+              maxlength="30"
+              autocomplete="name"
+            />
+          </div>
+
+          <!-- Exam Mode Selection -->
+          <div class="form-group">
+            <label><span class="label-icon">🎯</span> পরীক্ষার ধরণ (Exam Mode):</label>
+            <div class="mode-grid">
+              <label class="mode-option selected">
+                <input type="radio" name="exam-mode" value="mixed" checked />
+                <div class="mode-box">
+                  <span class="mode-emoji">🔄</span>
+                  <span class="mode-title">Mixed (উভয় ধরণ)</span>
+                  <span class="mode-desc">Assertive ⇄ Interrogative</span>
+                </div>
+              </label>
+
+              <label class="mode-option">
+                <input type="radio" name="exam-mode" value="assertive_to_interrogative" />
+                <div class="mode-box">
+                  <span class="mode-emoji">➡️</span>
+                  <span class="mode-title">Assertive ➔ Interrogative</span>
+                  <span class="mode-desc">প্রশ্নবোধক বাক্যে রূপান্তর</span>
+                </div>
+              </label>
+
+              <label class="mode-option">
+                <input type="radio" name="exam-mode" value="interrogative_to_assertive" />
+                <div class="mode-box">
+                  <span class="mode-emoji">⬅️</span>
+                  <span class="mode-title">Interrogative ➔ Assertive</span>
+                  <span class="mode-desc">বর্ণনামূলক বাক্যে রূপান্তর</span>
+                </div>
+              </label>
+            </div>
+          </div>
+
+          <!-- Question Count Selection (20, 50, 100) -->
+          <div class="form-group">
+            <label><span class="label-icon">📝</span> প্রশ্নের সংখ্যা (Number of Questions):</label>
+            <div class="count-selector">
+              <button type="button" class="count-btn" data-count="10">
+                <span class="c-num">10</span>
+                <span class="c-label">Quick Test</span>
+              </button>
+              <button type="button" class="count-btn selected" data-count="20">
+                <span class="c-num">20</span>
+                <span class="c-label">Standard</span>
+                <span class="badge-pop">Popular</span>
+              </button>
+              <button type="button" class="count-btn" data-count="50">
+                <span class="c-num">50</span>
+                <span class="c-label">Champion</span>
+              </button>
+              <button type="button" class="count-btn" data-count="100">
+                <span class="c-num">100</span>
+                <span class="c-label">Mega Hero</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- Timer Configuration -->
+          <div class="form-group">
+            <label><span class="label-icon">⏱️</span> সময় নির্ধারণ (Timer):</label>
+            <div class="timer-selector">
+              <button type="button" class="time-btn selected" data-time-mode="standard">
+                <span>⏱️ স্বাভাবিক (Standard)</span>
+                <small id="standard-time-preview">20 মিনিট</small>
+              </button>
+              <button type="button" class="time-btn" data-time-mode="speed">
+                <span>⚡ স্পিড টেস্ট (Speed Test)</span>
+                <small id="speed-time-preview">10 মিনিট</small>
+              </button>
+              <button type="button" class="time-btn" data-time-mode="notimer">
+                <span>🧘 সময়সীমা ছাড়া (No Timer)</span>
+                <small>আস্তে ধীরে দাও</small>
+              </button>
+            </div>
+          </div>
+
+          <!-- Start Button -->
+          <button id="start-exam-btn" class="start-btn pulse-glow">
+            🚀 পরীক্ষা শুরু করো (Start Exam)
+          </button>
+        </div>
+
+        <!-- Quick Stats Preview Banner -->
+        <div class="dashboard-shortcut-card" id="home-dashboard-shortcut">
+          <div class="sc-left">
+            <span class="sc-icon">🏆</span>
+            <div>
+              <h4>পূর্বের পরীক্ষার রেকর্ড (Exam History)</h4>
+              <p id="home-history-summary">এখনো কোনো পরীক্ষা দেওয়া হয়নি। প্রথম পরীক্ষা শুরু করো!</p>
+            </div>
+          </div>
+          <button class="pill-btn light" id="shortcut-open-db">রেকর্ড দেখুন ➔</button>
+        </div>
+      </section>
+
+
+      <!-- ==========================================
+           SCREEN 2: ACTIVE EXAM SCREEN
+           ========================================== -->
+      <section id="screen-exam" class="screen-panel">
+        <!-- Sticky Exam Topbar -->
+        <div class="exam-header-bar">
+          <div class="exam-meta">
+            <div class="student-tag">
+              <span class="tag-avatar">👦</span>
+              <span id="exam-display-name">Student</span>
+            </div>
+            <div class="q-progress-pill">
+              Question <span id="current-q-index">1</span> of <span id="total-q-count">20</span>
+            </div>
+          </div>
+
+          <div class="timer-box" id="timer-badge">
+            <span class="timer-icon">⏳</span>
+            <span id="timer-display">20:00</span>
+          </div>
+        </div>
+
+        <!-- Progress Bar -->
+        <div class="progress-track">
+          <div class="progress-fill" id="exam-progress-bar" style="width: 5%;"></div>
+        </div>
+
+        <!-- Exam Question Card Area -->
+        <div class="exam-question-card">
+          <div class="q-category-tag" id="q-category-label">
+            <span id="q-category-icon">🔄</span>
+            <span id="q-category-text">Assertive to Interrogative</span>
+          </div>
+
+          <div class="q-prompt-box">
+            <h3 class="q-instruction" id="q-instruction-text">Change into Interrogative:</h3>
+            <div class="q-sentence-wrapper">
+              <p class="q-sentence" id="q-sentence-text">The sky is blue.</p>
+            </div>
+          </div>
+
+          <div class="options-container" id="options-grid">
+            <!-- 4 Dynamic Option Buttons will be rendered here -->
+          </div>
+        </div>
+
+        <!-- Exam Action Controls -->
+        <div class="exam-controls">
+          <div class="controls-left">
+            <button id="btn-prev-q" class="ctrl-btn secondary" disabled>
+              ⬅️ Previous
+            </button>
+            <button id="btn-clear-choice" class="ctrl-btn text-only" title="Clear your answer for this question">
+              🧹 Clear
+            </button>
+          </div>
+
+          <div class="controls-center">
+            <button id="btn-palette-toggle" class="ctrl-btn outline" title="Open Question Palette">
+              🔢 Questions (<span id="palette-answered-count">0</span>/<span id="palette-total-count">20</span>)
+            </button>
+          </div>
+
+          <div class="controls-right">
+            <button id="btn-next-q" class="ctrl-btn primary">
+              Next ➡️
+            </button>
+            <button id="btn-finish-exam" class="ctrl-btn finish-btn">
+              🏁 Submit Exam
+            </button>
+          </div>
+        </div>
+
+        <!-- Question Palette Modal / Drawer -->
+        <div id="palette-drawer" class="palette-drawer hidden">
+          <div class="palette-header">
+            <h4>📌 প্রশ্ন তালিকা (Question Jump Grid)</h4>
+            <button id="btn-close-palette" class="icon-close-btn">&times;</button>
+          </div>
+          <div class="palette-legend">
+            <span class="legend-item"><span class="dot answered"></span> Answered</span>
+            <span class="legend-item"><span class="dot unanswered"></span> Unanswered</span>
+            <span class="legend-item"><span class="dot current"></span> Current</span>
+          </div>
+          <div class="palette-grid" id="palette-buttons-grid">
+            <!-- 1..20..100 numbers dynamically generated -->
+          </div>
+        </div>
+      </section>
+
+
+      <!-- ==========================================
+           SCREEN 3: RESULT & ANSWER REVIEW
+           ========================================== -->
+      <section id="screen-result" class="screen-panel">
+        <div class="result-hero-card">
+          <div class="stars-celebration" id="result-stars">
+            ⭐⭐⭐
+          </div>
+          <h2 class="result-headline" id="result-greeting">দারুণ পরীক্ষা দিয়েছ!</h2>
+          <p class="result-subtitle" id="result-subtitle">তোমার ফলাফলের বিস্তারিত নিচে দেওয়া হলো:</p>
+
+          <div class="score-circle-wrapper">
+            <div class="score-ring">
+              <span class="big-score" id="result-score-fraction">18/20</span>
+              <span class="score-percentage" id="result-percentage">90%</span>
+            </div>
+          </div>
+
+          <!-- Stats Pill Grid -->
+          <div class="result-stats-grid">
+            <div class="stat-pill correct">
+              <span class="s-icon">✅</span>
+              <div>
+                <strong id="stat-correct-count">18</strong>
+                <small>সঠিক (Correct)</small>
+              </div>
+            </div>
+            <div class="stat-pill wrong">
+              <span class="s-icon">❌</span>
+              <div>
+                <strong id="stat-wrong-count">2</strong>
+                <small>ভুল (Wrong)</small>
+              </div>
+            </div>
+            <div class="stat-pill skipped">
+              <span class="s-icon">⚪</span>
+              <div>
+                <strong id="stat-skipped-count">0</strong>
+                <small>ছেড়ে দেওয়া (Skipped)</small>
+              </div>
+            </div>
+            <div class="stat-pill duration">
+              <span class="s-icon">⏱️</span>
+              <div>
+                <strong id="stat-time-taken">08:45</strong>
+                <small>ব্যয়িত সময় (Time)</small>
+              </div>
+            </div>
+          </div>
+
+          <div class="result-actions">
+            <button id="btn-retry-exam" class="action-btn primary">
+              🔄 পুনরায় পরীক্ষা দাও (Retake)
+            </button>
+            <button id="btn-view-dashboard-from-res" class="action-btn secondary">
+              📊 ড্যাশবোর্ডে সংরক্ষণ দেখুন (Dashboard)
+            </button>
+            <button id="btn-new-exam" class="action-btn outline">
+              🏠 নতুন পরীক্ষা সেটআপ (Home)
+            </button>
+          </div>
+        </div>
+
+        <!-- Detailed Review Section -->
+        <div class="review-section">
+          <div class="review-header">
+            <h3>📝 উত্তর পর্যালোচনা (Answer Review)</h3>
+            <p>সঠিক ও ভুল উত্তরগুলো ভালো করে মিলিয়ে নাও এবং টিপস পড়ে নাও:</p>
+            
+            <div class="review-filter-tabs">
+              <button class="filter-tab active" data-filter="all">সব প্রশ্ন (<span id="filter-cnt-all">20</span>)</button>
+              <button class="filter-tab" data-filter="wrong">শুধু ভুলগুলো ❌ (<span id="filter-cnt-wrong">2</span>)</button>
+              <button class="filter-tab" data-filter="correct">সঠিকগুলো ✅ (<span id="filter-cnt-correct">18</span>)</button>
+            </div>
+          </div>
+
+          <div class="review-list" id="review-cards-container">
+            <!-- Dynamically populated answer review cards -->
+          </div>
+        </div>
+      </section>
+
+
+      <!-- ==========================================
+           SCREEN 4: DATABASE / DASHBOARD SCREEN
+           ========================================== -->
+      <section id="screen-dashboard" class="screen-panel">
+        <div class="dashboard-header-card">
+          <div class="dh-top">
+            <div>
+              <h2>📊 পরীক্ষার ফলাফল ড্যাশবোর্ড (Exam Dashboard)</h2>
+              <p>সকল পরীক্ষার তারিখ, সময়, ক্রমিক নম্বর ও অর্জিত নম্বর এখানে সংরক্ষিত থাকে।</p>
+            </div>
+            <button id="btn-db-back-home" class="pill-btn light">🏠 হোম পেইজ</button>
+          </div>
+
+          <div class="db-summary-boxes">
+            <div class="db-metric-box">
+              <span class="db-m-num" id="db-total-tests">0</span>
+              <span class="db-m-lbl">মোট পরীক্ষা সম্পন্ন</span>
+            </div>
+            <div class="db-metric-box">
+              <span class="db-m-num" id="db-best-score">--</span>
+              <span class="db-m-lbl">সর্বোচ্চ স্কোর (Best)</span>
+            </div>
+            <div class="db-metric-box">
+              <span class="db-m-num" id="db-avg-accuracy">--</span>
+              <span class="db-m-lbl">গড় সঠিকতা (Average)</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="dashboard-table-card">
+          <div class="table-topbar">
+            <h3>📋 সংরক্ষিত পরীক্ষার তালিকা (History Records)</h3>
+            <div class="table-actions">
+              <button id="btn-clear-db" class="danger-btn-sm" title="Clear all exam records">
+                🗑️ রেকর্ড মুছে ফেলুন (Clear All)
+              </button>
+            </div>
+          </div>
+
+          <div class="table-responsive">
+            <table class="history-table">
+              <thead>
+                <tr>
+                  <th>ক্রমিক (Serial)</th>
+                  <th>তারিখ ও সময় (Date & Time)</th>
+                  <th>শিক্ষার্থী (Name)</th>
+                  <th>ধরণ (Mode)</th>
+                  <th>প্রশ্ন সংখ্যা</th>
+                  <th>অর্জিত নম্বর (Score)</th>
+                  <th>শতকরা (Rate)</th>
+                  <th>সময় (Time)</th>
+                  <th>গ্রেড (Grade)</th>
+                </tr>
+              </thead>
+              <tbody id="history-table-body">
+                <!-- Dynamically rendered rows from LocalStorage database -->
+              </tbody>
+            </table>
+          </div>
+
+          <!-- Empty State -->
+          <div id="db-empty-state" class="empty-state hidden">
+            <span class="empty-icon">📭</span>
+            <h4>এখনো কোনো পরীক্ষার তথ্য জমা হয়নি!</h4>
+            <p>একটি পরীক্ষা সম্পন্ন করলেই স্বয়ংক্রিয়ভাবে তার বিবরণ এখানে জমা হবে।</p>
+            <button class="pill-btn primary" id="btn-db-empty-start">এখনই পরীক্ষা শুরু করো 🚀</button>
+          </div>
+        </div>
+      </section>
+
+    </main>
+
+    <!-- Global Confirmation Modal -->
+    <div id="confirm-modal" class="modal-overlay hidden">
+      <div class="modal-box">
+        <div class="modal-icon" id="modal-icon">⚠️</div>
+        <h3 id="modal-title">তুমি কি নিশ্চিত?</h3>
+        <p id="modal-message">তুমি কি এখনই পরীক্ষাটি শেষ ও জমা দিতে চাও?</p>
+        <div class="modal-buttons">
+          <button id="modal-btn-cancel" class="modal-btn cancel">না, ফিরে যাই</button>
+          <button id="modal-btn-confirm" class="modal-btn confirm">হ্যাঁ, সাবমিট করো</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="app-footer">
+      <p>❤️ Class 2 Changing Sentences Master • Designed for easy learning on mobile, tablet & PC.</p>
+    </footer>
+  </div>
+
+  <!-- Scripts -->
+  <script src="questions.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
